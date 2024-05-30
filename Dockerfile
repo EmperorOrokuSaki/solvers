@@ -11,29 +11,41 @@ RUN apt-get update && apt-get install -y \
     unzip \
     autoconf \
     software-properties-common \
-    libffi-dev
+    libffi-dev \
+    cmake \
+    python3.10-venv \
+    python3 python3-setuptools \
+    python3-wheel ninja-build 
 
 # Install Yices
 RUN add-apt-repository ppa:sri-csl/formal-methods -y && apt-get update && apt-get install -y yices2
 
-# Install Foundry
-RUN curl -L https://foundry.paradigm.xyz | bash
-RUN ~/.foundry/bin/foundryup
+RUN pip3 install --user meson
 
-# Set up Python and Install Halmos dependencies
-RUN pip3 install --upgrade pip
-RUN pip3 install pytest setuptools wheel
-RUN pip3 install z3-solver==4.12.2.0
+RUN git config --global http.postBuffer 1048576000  # Set buffer to 1GB
 
-# Add your application files
-WORKDIR /app
-COPY . /app
+# Disable HTTP/2 for Git
+RUN git config --global http.version HTTP/1.1
 
-# Ensure Foundry binaries are in PATH
-ENV PATH="/root/.foundry/bin:${PATH}"
 
-# Install the package in editable mode within /app directory
-RUN pip3 install -e /app
+RUN git clone https://github.com/cvc5/cvc5.git && cd cvc5 && ./configure.sh --auto-download && \
+    cd ./build && \
+    make && \
+    make check && \
+    make install 
+
+
+# Install Bitwuzla
+RUN git clone https://github.com/bitwuzla/bitwuzla && \
+    cd bitwuzla && \
+    ./configure.py && \
+    cd build && \
+    ninja install
+
+# Upgrade pip and install Python dependencies
+RUN pip3 install --upgrade pip && \
+    pip3 install pytest setuptools wheel z3-solver==4.12.2.0
 
 # Set the default command for the container
 CMD ["bash"]
+
