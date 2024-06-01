@@ -15,24 +15,38 @@ RUN apt-get update && apt-get install -y \
     cmake \
     python3.10-venv \
     python3 python3-setuptools \
-    python3-wheel ninja-build 
+    python3-wheel ninja-build \
+    g++ zlib1g-dev libboost-all-dev flex bison
+
+# Install STP
+RUN git clone https://github.com/stp/minisat.git && cd minisat && mkdir build && cd build && \
+    cmake .. && \
+    make && \
+    make install
+
+RUN git clone https://github.com/stp/stp.git && \
+    cd stp && mkdir build && cd build && \
+    cmake .. && \
+    make && \
+    make install
+
 
 # Install Yices
 RUN add-apt-repository ppa:sri-csl/formal-methods -y && apt-get update && apt-get install -y yices2
 
-RUN pip3 install --user meson
+RUN pip3 install meson
 
-RUN git config --global http.postBuffer 1048576000  # Set buffer to 1GB
+# RUN git config --global http.postBuffer 1048576000  # Set buffer to 1GB
 
 # Disable HTTP/2 for Git
-RUN git config --global http.version HTTP/1.1
+# RUN git config --global http.version HTTP/1.1
 
 
 RUN git clone https://github.com/cvc5/cvc5.git && cd cvc5 && ./configure.sh --auto-download && \
-    cd ./build && \
-    make && \
-    make check && \
-    make install 
+   cd ./build && \
+   make && \
+   make check && \
+   make install 
 
 
 # Install Bitwuzla
