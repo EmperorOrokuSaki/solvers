@@ -60,6 +60,15 @@ RUN git clone https://github.com/bitwuzla/bitwuzla && \
 RUN pip3 install --upgrade pip && \
     pip3 install pytest setuptools wheel z3-solver==4.12.2.0
 
+RUN pip install cython
+
+RUN git clone https://github.com/boolector/boolector && cd boolector && ./contrib/setup-lingeling.sh && \
+    ./contrib/setup-btor2tools.sh && \
+    ./configure.sh --python && \
+    cd build && \
+    make
+
+
 # Set the default command for the container
 CMD ["bash"]
 
